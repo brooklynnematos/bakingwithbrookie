@@ -1,7 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const stateBakesData = {
+type StateBakeData = {
+  title: string;
+  description: string;
+  image: string;
+  hasFullRecipe: boolean;
+};
+
+type StateBakesDataType = {
+  [key: string]: StateBakeData;
+};
+
+const stateAbbreviations: { [key: string]: string } = {
+  'Alabama': 'AL',
+  'Alaska': 'AK',
+  'Arizona': 'AZ',
+  'Arkansas': 'AR',
+  'California': 'CA',
+  'Colorado': 'CO',
+  'Connecticut': 'CT',
+  'Delaware': 'DE',
+  'Florida': 'FL',
+  'Georgia': 'GA',
+  'Hawaii': 'HI',
+  'Idaho': 'ID',
+  'Illinois': 'IL',
+  'Indiana': 'IN',
+  'Iowa': 'IA',
+  'Kansas': 'KS',
+  'Kentucky': 'KY',
+  'Louisiana': 'LA',
+  'Maine': 'ME',
+  'Maryland': 'MD',
+  'Massachusetts': 'MA',
+  'Michigan': 'MI',
+  'Minnesota': 'MN',
+  'Mississippi': 'MS',
+  'Missouri': 'MO',
+  'Montana': 'MT',
+  'Nebraska': 'NE',
+  'Nevada': 'NV',
+  'New Hampshire': 'NH',
+  'New Jersey': 'NJ',
+  'New Mexico': 'NM',
+  'New York': 'NY',
+  'North Carolina': 'NC',
+  'North Dakota': 'ND',
+  'Ohio': 'OH',
+  'Oklahoma': 'OK',
+  'Oregon': 'OR',
+  'Pennsylvania': 'PA',
+  'Rhode Island': 'RI',
+  'South Carolina': 'SC',
+  'South Dakota': 'SD',
+  'Tennessee': 'TN',
+  'Texas': 'TX',
+  'Utah': 'UT',
+  'Vermont': 'VT',
+  'Virginia': 'VA',
+  'Washington': 'WA',
+  'West Virginia': 'WV',
+  'Wisconsin': 'WI',
+  'Wyoming': 'WY'
+};
+
+const stateBakesData: StateBakesDataType = {
   'Alabama': {
     title: 'Lane Cake',
     description: 'A rich, bourbon-laced layer cake filled with pecans, raisins, and coconut, officially recognized as Alabama\'s state dessert.',
@@ -9,299 +73,299 @@ const stateBakesData = {
     hasFullRecipe: true
   },
   'Alaska': {
-    title: 'Baked Alaska',
-    description: 'A dessert made of ice cream placed in a pie dish lined with slices of sponge cake and topped with meringue.',
-    image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Blueberry Sourdough Scones',
+    description: 'Wild blueberry-studded sourdough scones that capture Alaska\'s rugged spirit and abundant berries.',
+    image: 'https://images.unsplash.com/photo-1519806104672-d42e25f422d5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Arizona': {
-    title: 'Sopaipillas',
-    description: 'Light and crispy fried pastries drizzled with honey, a Southwest favorite.',
-    image: 'https://images.unsplash.com/photo-1510693206972-df098062cb71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Prickly Pear Cheesecake',
+    description: 'A vibrant desert-inspired cheesecake featuring local prickly pear cactus fruit.',
+    image: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Arkansas': {
     title: 'Possum Pie',
-    description: 'A layered cream cheese and chocolate pudding dessert with a pecan crust.',
-    image: 'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    description: 'A layered cream cheese dessert with chocolate, pecans, and whipped cream (don\'t worry, no possums involved!).',
+    image: 'https://images.unsplash.com/photo-1508737027454-e6454ef45afd?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'California': {
-    title: 'Avocado Parfait',
-    description: 'A modern dessert featuring creamy avocado layered with granola and fresh fruits.',
-    image: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Sourdough Bread',
+    description: 'San Francisco-style sourdough bread with a perfectly crispy crust and tangy flavor.',
+    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Colorado': {
-    title: 'Palisade Peach Cobbler',
-    description: 'A warm cobbler made with famous Palisade peaches.',
-    image: 'https://images.unsplash.com/photo-1562591970-254bc62245c0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'High Altitude Chocolate Chip Cookies',
+    description: 'Perfectly adjusted chocolate chip cookies that account for high altitude baking challenges.',
+    image: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Connecticut': {
-    title: 'Snickerdoodle Cookies',
-    description: 'Classic cinnamon-sugar cookies with a perfectly chewy center.',
-    image: 'https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Nutmeg Spice Cookies',
+    description: 'Delicate cookies celebrating Connecticut\'s nickname as the Nutmeg State.',
+    image: 'https://images.unsplash.com/photo-1481391243133-f96216dcb5d2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Delaware': {
     title: 'Peach Pie',
-    description: 'A classic pie showcasing Delaware\'s famous peaches.',
-    image: 'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    description: 'A tribute to Delaware\'s peach-growing history with a perfectly flaky crust.',
+    image: 'https://images.unsplash.com/photo-1490323914169-4d5db28abf90?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Florida': {
     title: 'Key Lime Pie',
-    description: 'A tangy and sweet pie made with Key limes, a Florida favorite.',
+    description: 'The official state pie of Florida, featuring authentic Key lime juice and graham cracker crust.',
     image: 'https://images.unsplash.com/photo-1519915028121-7d3463d20b13?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Georgia': {
     title: 'Peach Cobbler',
-    description: 'A warm, sweet cobbler made with fresh Georgia peaches.',
-    image: 'https://images.unsplash.com/photo-1562591970-254bc62245c0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    description: 'Classic Southern peach cobbler made with fresh Georgia peaches and a buttery crust.',
+    image: 'https://images.unsplash.com/photo-1490323914169-4d5db28abf90?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Hawaii': {
-    title: 'Haupia',
-    description: 'A traditional coconut milk-based Hawaiian dessert.',
-    image: 'https://images.unsplash.com/photo-1572383672419-ab35444a6934?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Butter Mochi',
+    description: 'Chewy, sweet rice flour cake with coconut milk and Hawaiian flavors.',
+    image: 'https://images.unsplash.com/photo-1515037893149-de7300cde12d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Idaho': {
-    title: 'Spudnuts',
-    description: 'Doughnuts made with potato flour, creating a uniquely tender texture.',
-    image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Potato Cinnamon Rolls',
+    description: 'Ultra-soft cinnamon rolls made with Idaho potato in the dough for extra tenderness.',
+    image: 'https://images.unsplash.com/photo-1509365465985-25d11c17e812?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Illinois': {
-    title: 'Pumpkin Pie',
-    description: 'A classic Thanksgiving dessert with Illinois-grown pumpkins.',
-    image: 'https://images.unsplash.com/photo-1509461399763-ae67a981b254?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Chicago-Style Deep Dish Pizza',
+    description: 'While not technically a dessert, this iconic deep dish is a beloved baked good.',
+    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Indiana': {
-    title: 'Hoosier Pie',
-    description: 'A simple sugar cream pie, also known as Indiana Sugar Cream Pie.',
-    image: 'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Sugar Cream Pie',
+    description: 'Also known as Hoosier Pie, this simple custard pie is an Indiana classic.',
+    image: 'https://images.unsplash.com/photo-1519915028121-7d3463d20b13?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Iowa': {
-    title: 'Scotcheroos',
-    description: 'Rice Krispies treats topped with chocolate and butterscotch.',
-    image: 'https://images.unsplash.com/photo-1587556930799-8dca6fad6d43?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Corn Bread',
+    description: 'Sweet, moist cornbread celebrating Iowa\'s corn-growing heritage.',
+    image: 'https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Kansas': {
-    title: 'Peppernuts',
-    description: 'Small, spiced cookies brought by German Mennonite settlers.',
-    image: 'https://images.unsplash.com/photo-1597733153203-a54d0fbc47de?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Zwiebach',
+    description: 'Traditional Mennonite double-decker dinner rolls made with potato water.',
+    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Kentucky': {
     title: 'Derby Pie',
-    description: 'A chocolate and walnut tart created for the Kentucky Derby.',
-    image: 'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    description: 'Chocolate and walnut tart inspired by the Kentucky Derby.',
+    image: 'https://images.unsplash.com/photo-1519915028121-7d3463d20b13?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Louisiana': {
-    title: 'Beignets',
-    description: 'French-style square doughnuts covered in powdered sugar.',
-    image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'King Cake',
+    description: 'Traditional Mardi Gras king cake with cinnamon filling and colorful sugar topping.',
+    image: 'https://images.unsplash.com/photo-1519915028121-7d3463d20b13?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Maine': {
-    title: 'Whoopie Pie',
-    description: 'Two chocolate cake-like cookies filled with marshmallow cream.',
-    image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Wild Blueberry Pie',
+    description: 'Traditional Maine wild blueberry pie with a perfectly flaky crust.',
+    image: 'https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Maryland': {
     title: 'Smith Island Cake',
-    description: 'A towering cake with 8-10 thin layers and chocolate frosting.',
+    description: 'Official state dessert with 8-10 thin layers of yellow cake with chocolate frosting.',
     image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Massachusetts': {
     title: 'Boston Cream Pie',
-    description: 'A vanilla cake filled with custard and topped with chocolate.',
+    description: 'The official state dessert: yellow cake filled with custard and topped with chocolate.',
     image: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Michigan': {
-    title: 'Bumpy Cake',
-    description: 'Chocolate cake with buttercream bumps and chocolate frosting.',
-    image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Cherry Pie',
+    description: 'Made with famous Michigan Montmorency cherries.',
+    image: 'https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Minnesota': {
-    title: 'Seven Layer Bars',
-    description: 'Magic bars with graham crackers, chocolate, coconut, and more.',
-    image: 'https://images.unsplash.com/photo-1587556930799-8dca6fad6d43?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Swedish Kringla',
+    description: 'Soft pretzel-shaped cookies reflecting Minnesota\'s Scandinavian heritage.',
+    image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Mississippi': {
-    title: 'Mississippi Mud Pie',
-    description: 'A chocolate lover\'s dream with a gooey chocolate filling.',
-    image: 'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Mud Pie',
+    description: 'Rich chocolate pie with an Oreo crust, as deep and dark as the Mississippi River.',
+    image: 'https://images.unsplash.com/photo-1519915028121-7d3463d20b13?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Missouri': {
     title: 'Gooey Butter Cake',
-    description: 'A flat and dense cake with a gooey butter topping.',
+    description: 'St. Louis specialty with a yellow cake bottom and gooey butter topping.',
     image: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Montana': {
-    title: 'Huckleberry Ice Cream',
-    description: 'Creamy ice cream made with wild Montana huckleberries.',
-    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Huckleberry Bear Claws',
+    description: 'Flaky pastries filled with wild Montana huckleberries.',
+    image: 'https://images.unsplash.com/photo-1509365465985-25d11c17e812?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Nebraska': {
-    title: 'Tin Roof Sundae',
-    description: 'Ice cream sundae with chocolate sauce and salted peanuts.',
-    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Runza',
+    description: 'Yeasted bread pocket filled with beef, cabbage, and onions.',
+    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Nevada': {
-    title: 'Gâteau Basque',
-    description: 'A traditional Basque cake with a cherry or cream filling.',
-    image: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Basque Sheepherder\'s Bread',
+    description: 'Dense, crusty bread baked in a Dutch oven, reflecting Nevada\'s Basque heritage.',
+    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'New Hampshire': {
-    title: 'Apple Cider Doughnut',
-    description: 'A cake doughnut made with local apple cider.',
-    image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Maple Oatmeal Bread',
+    description: 'Hearty bread made with local maple syrup and rolled oats.',
+    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'New Jersey': {
-    title: 'Cannolis',
-    description: 'Italian pastry tubes filled with sweet ricotta cream.',
-    image: 'https://images.unsplash.com/photo-1607920591413-4ec007e70023?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Blueberry Crumb Cake',
+    description: 'Made with famous Jersey blueberries and topped with brown sugar crumbs.',
+    image: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'New Mexico': {
     title: 'Biscochitos',
-    description: 'Traditional anise-flavored cookies, the official state cookie.',
-    image: 'https://images.unsplash.com/photo-1597733153203-a54d0fbc47de?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    description: 'Traditional anise-flavored cookies, New Mexico\'s official state cookie.',
+    image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'New York': {
-    title: 'Cheesecake',
-    description: 'The famous dense and creamy New York-style cheesecake.',
+    title: 'New York Cheesecake',
+    description: 'Classic, dense, and creamy New York-style cheesecake with a graham cracker crust.',
     image: 'https://images.unsplash.com/photo-1524351199678-941a58a3df50?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'North Carolina': {
     title: 'Sweet Potato Pie',
-    description: 'A Southern classic made with North Carolina sweet potatoes.',
-    image: 'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    description: 'Classic Southern pie made with North Carolina sweet potatoes.',
+    image: 'https://images.unsplash.com/photo-1519915028121-7d3463d20b13?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'North Dakota': {
-    title: 'Krumkake',
-    description: 'Norwegian waffle cookies made with a decorative iron.',
-    image: 'https://images.unsplash.com/photo-1597733153203-a54d0fbc47de?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Chokecherry Kuchen',
+    description: 'German-Russian pastry made with local chokecherries.',
+    image: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Ohio': {
-    title: 'Buckeyes',
-    description: 'Peanut butter balls dipped in chocolate.',
-    image: 'https://images.unsplash.com/photo-1587556930799-8dca6fad6d43?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Buckeye Candy',
+    description: 'While not baked, these chocolate-dipped peanut butter balls are iconic.',
+    image: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Oklahoma': {
     title: 'Fried Pie',
-    description: 'Hand pies filled with fruit and fried until golden.',
-    image: 'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    description: 'Hand-held fruit pies with flaky crust, a state fair favorite.',
+    image: 'https://images.unsplash.com/photo-1490323914169-4d5db28abf90?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Oregon': {
     title: 'Marionberry Pie',
-    description: 'Pie made with Oregon\'s own variety of blackberry.',
-    image: 'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    description: 'Made with Oregon\'s own variety of blackberry.',
+    image: 'https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Pennsylvania': {
     title: 'Shoofly Pie',
-    description: 'A molasses pie with a crumb topping.',
-    image: 'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    description: 'Traditional Pennsylvania Dutch pie with molasses filling and crumb topping.',
+    image: 'https://images.unsplash.com/photo-1519915028121-7d3463d20b13?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Rhode Island': {
-    title: 'Fruit Tart',
-    description: 'A buttery tart shell filled with custard and fresh fruits.',
-    image: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Doughboys',
+    description: 'Fresh fried dough topped with powdered sugar, a Rhode Island fair classic.',
+    image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'South Carolina': {
-    title: 'Huguenot Torte',
-    description: 'A crispy, nutty meringue-based dessert.',
-    image: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Coconut Cake',
+    description: 'Towering layer cake filled and frosted with coconut, a Charleston specialty.',
+    image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'South Dakota': {
     title: 'Kuchen',
-    description: 'German pastry filled with fruit and custard.',
+    description: 'German pastry with sweet dough and fruit filling, the official state dessert.',
     image: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Tennessee': {
-    title: 'Banana Pudding',
-    description: 'Layers of vanilla wafers, bananas, and creamy pudding.',
-    image: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Stack Cake',
+    description: 'Multi-layered cake with dried fruit filling, an Appalachian tradition.',
+    image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Texas': {
     title: 'Pecan Pie',
-    description: 'Rich, gooey pie loaded with Texas pecans.',
-    image: 'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    description: 'Rich, gooey pecan pie made with Texas pecans and a flaky butter crust.',
+    image: 'https://images.unsplash.com/photo-1576391349821-c8d3c7c43c72?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Utah': {
-    title: 'Jell-O Salad',
-    description: 'A layered gelatin dessert with fruit and cream.',
-    image: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Jell-O Pretzel Salad',
+    description: 'While not technically baked, this layered dessert is a Utah staple.',
+    image: 'https://images.unsplash.com/photo-1515037893149-de7300cde12d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Vermont': {
-    title: 'Maple Creemee',
-    description: 'Soft-serve ice cream made with pure Vermont maple syrup.',
-    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Maple Apple Pie',
+    description: 'Classic apple pie sweetened with pure Vermont maple syrup.',
+    image: 'https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Virginia': {
-    title: 'Peanut Pie',
-    description: 'Similar to pecan pie but made with Virginia peanuts.',
-    image: 'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Chess Pie',
+    description: 'Simple custard pie with cornmeal and vinegar, a Southern classic.',
+    image: 'https://images.unsplash.com/photo-1519915028121-7d3463d20b13?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Washington': {
-    title: 'Nanaimo Bars',
-    description: 'No-bake bars with a chocolate-coconut base and custard filling.',
-    image: 'https://images.unsplash.com/photo-1587556930799-8dca6fad6d43?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Apple Pie',
+    description: 'Made with Washington State apples and a perfectly flaky crust.',
+    image: 'https://images.unsplash.com/photo-1568571780765-9276ac8b75a7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'West Virginia': {
     title: 'Molasses Cookies',
-    description: 'Soft, chewy cookies rich with molasses flavor.',
-    image: 'https://images.unsplash.com/photo-1597733153203-a54d0fbc47de?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    description: 'Soft, chewy cookies made with rich molasses, a mountain state favorite.',
+    image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Wisconsin': {
     title: 'Kringle',
-    description: 'Danish pastry filled with fruit or nuts.',
+    description: 'Danish pastry filled with fruit or nuts, the official state pastry.',
     image: 'https://images.unsplash.com/photo-1509365465985-25d11c17e812?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
   },
   'Wyoming': {
-    title: 'Cowboy Cookies',
-    description: 'Hearty cookies packed with oats, chocolate, and nuts.',
-    image: 'https://images.unsplash.com/photo-1597733153203-a54d0fbc47de?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    title: 'Sourdough Biscuits',
+    description: 'Hearty biscuits made with traditional sourdough starter, a cowboy classic.',
+    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     hasFullRecipe: false
-  },
+  }
 };
 
 const states = [
@@ -320,9 +384,20 @@ const states = [
 export function StateBakes() {
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const navigate = useNavigate();
+  const detailsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selectedState && detailsRef.current) {
+      detailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [selectedState]);
 
   const handleStateClick = (state: string) => {
     setSelectedState(state);
+  };
+
+  const getStateBakeData = (state: string): StateBakeData | undefined => {
+    return stateBakesData[state];
   };
 
   return (
@@ -339,31 +414,33 @@ export function StateBakes() {
                   ? 'bg-rose-500 text-white'
                   : 'bg-rose-100 hover:bg-rose-200 text-rose-900'
               }`}
+              title={state}
             >
-              <span className="text-center line-clamp-2">{state}</span>
+              <span className="text-center hidden md:block">{state}</span>
+              <span className="text-center md:hidden">{stateAbbreviations[state]}</span>
             </button>
           ))}
         </div>
         
         {selectedState && (
-          <div className="mt-12 bg-rose-50 rounded-lg p-8">
+          <div ref={detailsRef} className="mt-12 bg-rose-50 rounded-lg p-8">
             <h3 className="text-2xl font-serif text-rose-900 mb-4">{selectedState}'s Signature Bake</h3>
             <div className="grid md:grid-cols-2 gap-8">
               <img
-                src={stateBakesData[selectedState as keyof typeof stateBakesData]?.image || 'https://images.unsplash.com/photo-1486427944299-d1955d23e34d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'}
-                alt={`${selectedState} Bake`}
-                className="rounded-lg shadow-md"
+                src={getStateBakeData(selectedState)?.image || 'https://images.unsplash.com/photo-1486427944299-d1955d23e34d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'}
+                alt={`${selectedState} Signature Bake`}
+                className="rounded-lg shadow-md object-cover aspect-video"
               />
               <div>
-                {stateBakesData[selectedState as keyof typeof stateBakesData] ? (
+                {getStateBakeData(selectedState) ? (
                   <>
                     <h4 className="text-xl font-medium text-rose-900 mb-2">
-                      {stateBakesData[selectedState as keyof typeof stateBakesData].title}
+                      {getStateBakeData(selectedState)?.title}
                     </h4>
                     <p className="text-gray-700 mb-6">
-                      {stateBakesData[selectedState as keyof typeof stateBakesData].description}
+                      {getStateBakeData(selectedState)?.description}
                     </p>
-                    {stateBakesData[selectedState as keyof typeof stateBakesData].hasFullRecipe ? (
+                    {getStateBakeData(selectedState)?.hasFullRecipe ? (
                       <button
                         onClick={() => navigate(`/state-recipe/${selectedState.toLowerCase()}`)}
                         className="bg-rose-500 text-white px-6 py-2 rounded-lg hover:bg-rose-600 transition-colors"
